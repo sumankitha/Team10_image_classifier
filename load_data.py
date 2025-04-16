@@ -7,4 +7,5 @@ test_dir,img_size=IMG_SIZE,
     train_data =
     datagen.flow_from_directory{
             datgen.flow_from_directory(
-                datagen.flow:
+                datagen.float
+                :
