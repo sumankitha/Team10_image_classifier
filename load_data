@@ -1,1 +1,4 @@
 my first part
+val_data=
+datagen.flow_from_directory(
+train_dir,target_size
