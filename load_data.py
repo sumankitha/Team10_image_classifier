@@ -10,3 +10,4 @@ test_dir,img_size=IMG_SIZE,
             train_dir,target_size=img_size,
             batch_size=batch_size,class_mode='categorical'
             return train_data,val_data,
+            test-data
