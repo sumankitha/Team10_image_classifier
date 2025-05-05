@@ -11,4 +11,6 @@ test_dir,img_size=IMG_SIZE,
 
             val_data=
             datagen.flow_from_directory(
-                val_dir,target
+                val_dir,target_size=img_size,
+                batch_size=batch_size,
+                class_mode='categorical')
