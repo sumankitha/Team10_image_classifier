@@ -1,3 +1,4 @@
+
 def load_data(train_dir,val_dir,
 test_dir,img_size=IMG_SIZE,
               batch_size=BATCH_SIZE):
@@ -8,3 +9,4 @@ test_dir,img_size=IMG_SIZE,
     datagen.flow_from_directory(
             train_dir,target_size=img_size,
             batch_size=batch_size,class_mode='categorical'
+            return train_data,val_data,
