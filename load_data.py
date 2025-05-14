@@ -16,7 +16,7 @@ test_dir,img_size=IMG_SIZE,
             batch_size=batch_size,
             class_mode='categorical',shuffle = false)
             batch_size=batch_size,class_mode='categorical'
-HEAD
+
             val_data=
             datagen.flow_from_directory(
                 val_dir,target_size=img_size,
@@ -25,5 +25,3 @@ HEAD
 
             return train_data,val_data,
             test_data_  
- branch3
->>>>>>> branch2
