@@ -1,3 +1,4 @@
 Predict_image(img_path)
 elif choice == '3':
-
+evaluate_model()
+else:
