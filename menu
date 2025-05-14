@@ -1,4 +1,11 @@
 if _name__ == "__main__":
    printf("AI Image Classifier")
    printf("1.Train Model")
-   printf("2.Predict Single Image"
+   printf("2.Predict Single Image")
+   printf("3.Evaluate on test set")
+   choice=input("select an option (1/2/3):")
+   if choice == "1" :
+   train_model()
+   elif choice =='2':
+   img_path= input("enter image file path:")
+   
