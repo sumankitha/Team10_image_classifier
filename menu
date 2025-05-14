@@ -1,0 +1,4 @@
+if _name__ == "__main__":
+   printf("AI Image Classifier")
+   printf("1.Train Model")
+   printf("2.Predict Single Image"
