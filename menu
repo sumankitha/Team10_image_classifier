@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 if _name__ == "__main__":
    printf("AI Image Classifier")
    printf("1.Train Model")
@@ -9,3 +10,10 @@ if _name__ == "__main__":
    elif choice =='2':
    img_path= input("enter image file path:")
    
+=======
+Predict_image(img_path)
+elif choice == '3':
+evaluate_model()
+else:
+printf("invalid choice")
+>>>>>>> branch1
