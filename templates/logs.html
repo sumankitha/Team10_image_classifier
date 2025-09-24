@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Conversation Logs</h1>
+            <div>
+                <a href="{{ url_for('analytics') }}" class="btn btn-outline-info me-2">
+                    <i class="fas fa-chart-bar me-1"></i>View Analytics
+                </a>
+                <button class="btn btn-outline-secondary" onclick="exportLogs()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ logs.total }}</h4>
+                        <small class="text-muted">Total Conversations</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ logs.items|selectattr('user_feedback', 'equalto', 'positive')|list|length }}</h4>
+                        <small class="text-muted">Positive Feedback</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-danger">{{ logs.items|selectattr('user_feedback', 'equalto', 'negative')|list|length }}</h4>
+                        <small class="text-muted">Negative Feedback</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ logs.items|selectattr('user_feedback', 'equalto', None)|list|length }}</h4>
+                        <small class="text-muted">No Feedback</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conversation Logs -->
+<div class="row">
+    <div class="col-md-12">
+        {% if logs.items %}
+            {% for log in logs.items %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </small>
+                                {% if log.session_id %}
+                                    <small class="text-muted ms-3">
+                                        <i class="fas fa-user me-1"></i>
+                                        Session: {{ log.session_id[:8] }}...
+                                    </small>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if log.user_feedback %}
+                                    <span class="badge bg-{{ 'success' if log.user_feedback == 'positive' else 'danger' if log.user_feedback == 'negative' else 'secondary' }}">
+                                        <i class="fas fa-thumbs-{{ 'up' if log.user_feedback == 'positive' else 'down' if log.user_feedback == 'negative' else 'right' }} me-1"></i>
+                                        {{ log.user_feedback.title() }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">No Feedback</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-user me-2"></i>User Question
+                                </h6>
+                                <div class="bg-light p-3 rounded mb-3">
+                                    {{ log.user_question }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-success">
+                                    <i class="fas fa-robot me-2"></i>Bot Response
+                                </h6>
+                                <div class="bg-light p-3 rounded mb-3">
+                                    {{ log.bot_response }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if logs.pages > 1 %}
+                <nav aria-label="Conversation logs pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if logs.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('conversation_logs', page=logs.prev_num) }}">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num != logs.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('conversation_logs', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if logs.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('conversation_logs', page=logs.next_num) }}">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                
+                <div class="text-center text-muted">
+                    <small>
+                        Showing {{ logs.per_page * (logs.page - 1) + 1 }} to 
+                        {{ logs.per_page * logs.page if logs.page < logs.pages else logs.total }} 
+                        of {{ logs.total }} conversations
+                    </small>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                    <h4>No Conversation Logs</h4>
+                    <p class="text-muted mb-4">
+                        Conversation logs will appear here once users start interacting with the system.
+                    </p>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Conversation Logs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Choose export format for conversation logs:</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success" onclick="downloadCSV()">
+                        <i class="fas fa-file-csv me-2"></i>Export as CSV
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="downloadJSON()">
+                        <i class="fas fa-file-code me-2"></i>Export as JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function exportLogs() {
+    const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+    modal.show();
+}
+
+function downloadCSV() {
+    // Create CSV content
+    let csv = 'Timestamp,User Question,Bot Response,User Feedback,Session ID\n';
+    
+    {% for log in logs.items %}
+    const timestamp{{ loop.index }} = "{{ log.timestamp.isoformat() }}";
+    const question{{ loop.index }} = {{ log.user_question|tojson }};
+    const response{{ loop.index }} = {{ log.bot_response|tojson }};
+    const feedback{{ loop.index }} = {{ log.user_feedback|tojson if log.user_feedback else '""' }};
+    const sessionId{{ loop.index }} = {{ log.session_id|tojson if log.session_id else '""' }};
+    
+    csv += `${timestamp{{ loop.index }}},${question{{ loop.index }}},${response{{ loop.index }}},${feedback{{ loop.index }} || ''},${sessionId{{ loop.index }} || ''}\n`;
+    {% endfor %}
+    
+    downloadFile('conversation_logs.csv', csv, 'text/csv');
+    bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+}
+
+function downloadJSON() {
+    const logs = [
+        {% for log in logs.items %}
+        {
+            "timestamp": "{{ log.timestamp.isoformat() }}",
+            "user_question": {{ log.user_question|tojson }},
+            "bot_response": {{ log.bot_response|tojson }},
+            "user_feedback": {{ log.user_feedback|tojson }},
+            "session_id": {{ log.session_id|tojson }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    const jsonContent = JSON.stringify(logs, null, 2);
+    downloadFile('conversation_logs.json', jsonContent, 'application/json');
+    bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+}
+
+function downloadFile(filename, content, contentType) {
+    const blob = new Blob([content], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

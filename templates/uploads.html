@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Uploaded Files</h1>
+            <a href="{{ url_for('upload_file') }}" class="btn btn-primary">
+                <i class="fas fa-upload me-2"></i>Upload New File
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {% if uploads %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Type</th>
+                            <th>Upload Date</th>
+                            <th>Status</th>
+                            <th>Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for upload in uploads %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-{{ 'pdf' if upload.file_type == 'pdf' else 'csv' }} 
+                                           text-{{ 'danger' if upload.file_type == 'pdf' else 'success' }} me-2"></i>
+                                        <div>
+                                            <div class="fw-bold">{{ upload.filename }}</div>
+                                            <small class="text-muted">{{ upload.file_type.upper() }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if upload.file_type == 'pdf' else 'success' }}">
+                                        {{ upload.file_type.upper() }}
+                                    </span>
+                                </td>
+                                <td>{{ upload.upload_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if upload.processed else 'warning' }}">
+                                        {{ 'Processed' if upload.processed else 'Processing' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if upload.content_preview %}
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#preview-{{ upload.id }}">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted">No preview</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Preview Modals -->
+            {% for upload in uploads %}
+                {% if upload.content_preview %}
+                    <div class="modal fade" id="preview-{{ upload.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-file-{{ 'pdf' if upload.file_type == 'pdf' else 'csv' }} me-2"></i>
+                                        {{ upload.filename }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Type:</strong> {{ upload.file_type.upper() }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Uploaded:</strong> {{ upload.upload_date.strftime('%Y-%m-%d %H:%M') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="bg-light p-3 rounded">
+                                        <pre class="mb-0" style="white-space: pre-wrap; font-size: 0.9em;">{{ upload.content_preview }}</pre>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-cloud-upload-alt fa-4x text-muted mb-3"></i>
+                    <h4>No Files Uploaded</h4>
+                    <p class="text-muted mb-4">
+                        Upload your first PDF or CSV file to get started with content management.
+                    </p>
+                    <a href="{{ url_for('upload_file') }}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload First File
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if uploads %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ uploads|length }}</h4>
+                            <small class="text-muted">Total Files</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-danger">{{ uploads|selectattr('file_type', 'equalto', 'pdf')|list|length }}</h4>
+                            <small class="text-muted">PDF Files</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ uploads|selectattr('file_type', 'equalto', 'csv')|list|length }}</h4>
+                            <small class="text-muted">CSV Files</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ uploads|selectattr('processed', 'equalto', true)|list|length }}</h4>
+                            <small class="text-muted">Processed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
